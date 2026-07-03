@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Golf Practice Log</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Golf Practice Log</p>
+          <h1>練習ログ</h1>
+        </div>
+        <button class="icon-button" id="exportCsv" type="button" aria-label="CSVエクスポート">CSV</button>
+      </header>
+
+      <main>
+        <section class="panel" aria-labelledby="templateTitle">
+          <h2 id="templateTitle">テンプレート</h2>
+          <div class="template-grid" id="templateButtons"></div>
+        </section>
+
+        <form id="logForm" class="stack">
+          <section class="panel compact" aria-labelledby="basicTitle">
+            <div class="section-head">
+              <h2 id="basicTitle">基本情報</h2>
+              <span id="activeTemplateLabel" class="pill">A練</span>
+            </div>
+            <div class="basic-grid">
+              <label>
+                日付
+                <input id="dateInput" name="date" type="date" required />
+              </label>
+              <label>
+                場所
+                <input id="locationInput" name="location" type="text" placeholder="練習場・屋外など" />
+              </label>
+              <label>
+                体調
+                <select id="conditionInput" name="condition">
+                  <option value="普通">普通</option>
+                  <option value="良い">良い</option>
+                  <option value="疲れ気味">疲れ気味</option>
+                  <option value="不調">不調</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="cards" id="clubCards" aria-live="polite"></section>
+
+          <section class="panel compact">
+            <label>
+              総評メモ
+              <textarea id="overallMemoInput" rows="3" placeholder="今日の気づき、次回やること"></textarea>
+            </label>
+          </section>
+
+          <div class="sticky-actions">
+            <button class="primary-button" type="submit">保存する</button>
+          </div>
+        </form>
+
+        <section class="summary hidden" id="todaySummary" aria-live="polite"></section>
+
+        <section class="panel" aria-labelledby="trendTitle">
+          <div class="section-head">
+            <h2 id="trendTitle">直近5回の成功率</h2>
+            <button class="text-button" id="clearData" type="button">全削除</button>
+          </div>
+          <div id="trendList" class="trend-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="clubCardTemplate">
+      <article class="club-card">
+        <div class="club-head">
+          <h3></h3>
+          <button class="remove-card" type="button" aria-label="このクラブを削除">削除</button>
+        </div>
+        <div class="metric-list"></div>
+        <label class="memo-field">
+          メモ
+          <textarea rows="2" placeholder="当たり方、ミス傾向など"></textarea>
+        </label>
+      </article>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
