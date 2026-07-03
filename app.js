@@ -1,106 +1,83 @@
-const STORAGE_KEY = "golf-practice-logs-v1";
+const STORAGE_KEY = "golf-practice-logs-v2-prototype";
 const DEFAULT_LOCATION = "zenゴルフレンジ";
 
-const metric = (key, label, kind = "count", defaultValue = key === "balls" ? 20 : 0) => ({
-  key,
-  label,
-  kind,
-  defaultValue,
-});
-const percentMetric = () => metric("success_rate", "成功率", "percent", "");
-
-const iron7Metrics = [
-  metric("balls", "球数"),
-  metric("success_130y", "130y成功数"),
-  metric("success_140y", "140y成功数"),
-  metric("success_150y", "150y成功数"),
+const METRIC_KIND_OPTIONS = [
+  { value: "count", label: "数値" },
+  { value: "percent", label: "成功率" },
+  { value: "distance", label: "飛距離" },
 ];
 
-const templates = {
-  "A練": [
-    {
-      clubId: "iron7",
-      clubName: "7番アイアン",
-      metrics: iron7Metrics,
-    },
-    {
-      clubId: "driver",
-      clubName: "ドライバー",
-      metrics: [
-        metric("balls", "球数"),
-        metric("success_180y", "180y成功数"),
-        metric("success_190y", "190y成功数"),
-        metric("success_200y", "200y成功数"),
-        metric("max_distance", "最大飛距離", "distance"),
-        metric("miss", "ミス数"),
-      ],
-    },
-    {
-      clubId: "sw60y",
-      clubName: "SW60y",
-      metrics: successRateOnlyMetrics(),
-    },
-    {
-      clubId: "ut",
-      clubName: "UT",
-      metrics: [
-        metric("balls", "球数"),
-        metric("success_150y", "150y成功数"),
-        metric("success_160y", "160y成功数"),
-        metric("miss", "ミス数"),
-      ],
-    },
-  ],
-  "B練": [
-    {
-      clubId: "iron7",
-      clubName: "7番アイアン",
-      metrics: iron7Metrics,
-    },
-    quickClub("pw90y", "PW90y"),
-    {
-      clubId: "wood5",
-      clubName: "5W",
-      metrics: [
-        metric("balls", "球数"),
-        metric("success_170y", "170y成功数"),
-        metric("success_180y", "180y成功数"),
-        metric("success_190y", "190y成功数"),
-        metric("max_distance", "最大飛距離", "distance"),
-        metric("miss", "ミス数"),
-      ],
-    },
-    {
-      clubId: "putter10y",
-      clubName: "パター10y",
-      metrics: successRateOnlyMetrics(),
-    },
-    {
-      clubId: "pw20y",
-      clubName: "PW20y",
-      metrics: successRateOnlyMetrics(),
-    },
-  ],
-  "屋外練": [
-    quickClub("driver", "ドライバー"),
-    quickClub("iron7", "7番アイアン"),
-    quickClub("approach", "アプローチ"),
-    quickClub("putter", "パター"),
-  ],
-  "自由入力": [quickClub("free1", "自由入力")],
-};
-
-function quickClub(clubId, clubName) {
+function metric(key, label, kind = "count", defaultValue = key === "balls" ? 20 : 0, options = {}) {
   return {
-    clubId,
-    clubName,
-    metrics: [metric("balls", "球数"), metric("success", "成功数"), metric("miss", "ミス数")],
+    key,
+    label,
+    kind,
+    defaultValue,
+    locked: options.locked ?? key === "balls",
   };
 }
 
-function successRateOnlyMetrics() {
-  return [metric("balls", "球数"), percentMetric()];
+function club(clubId, clubName, metrics, options = {}) {
+  return {
+    clubId,
+    clubName,
+    metrics: metrics.map((item) => ({ ...item })),
+    editableName: options.editableName ?? false,
+    allowMetricEdit: options.allowMetricEdit ?? false,
+    allowRemove: options.allowRemove ?? true,
+  };
 }
+
+const commonMetrics = {
+  iron7: [
+    metric("balls", "球数"),
+    metric("success_130y", "130y成功数"),
+    metric("success_140y", "140y成功数"),
+    metric("success_150y", "150y成功数"),
+  ],
+  driver: [
+    metric("balls", "球数"),
+    metric("success_180y", "180y成功数"),
+    metric("success_190y", "190y成功数"),
+    metric("success_200y", "200y成功数"),
+    metric("max_distance", "最大飛距離", "distance"),
+    metric("miss", "ミス数"),
+  ],
+  successRateOnly: [metric("balls", "球数"), metric("success_rate", "成功率", "percent", "")],
+  quick: [metric("balls", "球数"), metric("success", "成功数"), metric("miss", "ミス数")],
+};
+
+const clubPresets = {
+  iron7: () => club("iron7", "7番アイアン", commonMetrics.iron7),
+  driver: () => club("driver", "ドライバー", commonMetrics.driver),
+  sw60y: () => club("sw60y", "SW60y", commonMetrics.successRateOnly),
+  ut: () =>
+    club("ut", "UT", [
+      metric("balls", "球数"),
+      metric("success_150y", "150y成功数"),
+      metric("success_160y", "160y成功数"),
+      metric("miss", "ミス数"),
+    ]),
+  pw90y: () => club("pw90y", "PW90y", commonMetrics.quick),
+  wood5: () =>
+    club("wood5", "5W", [
+      metric("balls", "球数"),
+      metric("success_170y", "170y成功数"),
+      metric("success_180y", "180y成功数"),
+      metric("success_190y", "190y成功数"),
+      metric("max_distance", "最大飛距離", "distance"),
+      metric("miss", "ミス数"),
+    ]),
+  putter10y: () => club("putter10y", "パター10y", commonMetrics.successRateOnly),
+  pw20y: () => club("pw20y", "PW20y", commonMetrics.successRateOnly),
+};
+
+const templates = {
+  "A練": [clubPresets.iron7(), clubPresets.driver(), clubPresets.sw60y(), clubPresets.ut()],
+  "B練": [clubPresets.iron7(), clubPresets.pw90y(), clubPresets.wood5(), clubPresets.putter10y(), clubPresets.pw20y()],
+  "屋外練": [clubPresets.iron7(), clubPresets.driver()],
+  "自由入力": [createCustomClub("自由入力")],
+};
 
 const state = {
   activeTemplate: "A練",
@@ -149,11 +126,7 @@ function renderTemplateButtons() {
 
 function setTemplate(name) {
   state.activeTemplate = name;
-  state.clubs = structuredClone(templates[name]).map((club) => ({
-    ...club,
-    values: Object.fromEntries(club.metrics.map((item) => [item.key, item.defaultValue])),
-    memo: "",
-  }));
+  state.clubs = cloneTemplateClubs(templates[name]);
   if (name === "A練" || name === "B練") {
     locationInput.value = DEFAULT_LOCATION;
   }
@@ -164,39 +137,162 @@ function setTemplate(name) {
   renderCards();
 }
 
+function cloneTemplateClubs(clubs) {
+  return structuredClone(clubs).map(prepareClubForInput);
+}
+
+function prepareClubForInput(sourceClub) {
+  return {
+    ...sourceClub,
+    instanceId: createId(),
+    values: Object.fromEntries(sourceClub.metrics.map((item) => [item.key, item.defaultValue])),
+    memo: "",
+  };
+}
+
 function renderCards() {
   clubCards.innerHTML = "";
-  state.clubs.forEach((club, clubIndex) => {
+  state.clubs.forEach((clubItem, clubIndex) => {
     const node = cardTemplate.content.firstElementChild.cloneNode(true);
-    node.querySelector("h3").textContent = club.clubName;
-    node.querySelector(".remove-card").addEventListener("click", () => {
-      state.clubs.splice(clubIndex, 1);
-      renderCards();
-    });
+    renderClubTitle(node, clubItem, clubIndex);
+    renderRemoveButton(node, clubItem, clubIndex);
 
     const metricList = node.querySelector(".metric-list");
-    club.metrics.forEach((item) => {
-      metricList.append(createMetricRow(clubIndex, item));
+    clubItem.metrics.forEach((item, metricIndex) => {
+      metricList.append(createMetricRow(clubIndex, metricIndex, item));
     });
 
+    if (clubItem.allowMetricEdit) {
+      const addMetricButton = document.createElement("button");
+      addMetricButton.type = "button";
+      addMetricButton.className = "text-button add-metric";
+      addMetricButton.textContent = "項目追加";
+      addMetricButton.addEventListener("click", () => addMetric(clubIndex));
+      metricList.append(addMetricButton);
+    }
+
     const memo = node.querySelector("textarea");
-    memo.value = club.memo;
+    memo.value = clubItem.memo;
     memo.addEventListener("input", (event) => {
       state.clubs[clubIndex].memo = event.target.value;
     });
 
     clubCards.append(node);
   });
+
+  const addClubButton = document.createElement("button");
+  addClubButton.type = "button";
+  addClubButton.className = "add-club-button";
+  addClubButton.textContent = "クラブ追加";
+  addClubButton.addEventListener("click", addCustomClub);
+  clubCards.append(addClubButton);
 }
 
-function createMetricRow(clubIndex, item) {
+function renderClubTitle(node, clubItem, clubIndex) {
+  const title = node.querySelector("h3");
+  if (!clubItem.editableName) {
+    title.textContent = clubItem.clubName;
+    return;
+  }
+
+  const label = document.createElement("label");
+  label.className = "club-name-field";
+  label.textContent = "クラブ名";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = clubItem.clubName;
+  input.placeholder = "クラブ名";
+  input.addEventListener("input", (event) => {
+    state.clubs[clubIndex].clubName = event.target.value.trim() || "未設定クラブ";
+  });
+
+  label.append(input);
+  title.replaceWith(label);
+}
+
+function renderRemoveButton(node, clubItem, clubIndex) {
+  const button = node.querySelector(".remove-card");
+  if (clubItem.allowRemove === false) {
+    button.classList.add("hidden");
+    return;
+  }
+
+  button.addEventListener("click", () => {
+    state.clubs.splice(clubIndex, 1);
+    renderCards();
+  });
+}
+
+function createMetricRow(clubIndex, metricIndex, item) {
   const row = document.createElement("div");
-  row.className = "metric-row";
+  row.className = `metric-row${isMetricEditable(clubIndex, item) ? " editable-metric" : ""}`;
 
-  const name = document.createElement("div");
-  name.className = "metric-name";
-  name.textContent = item.label;
+  const name = createMetricNameControl(clubIndex, metricIndex, item);
+  const counter = createCounter(clubIndex, item);
 
+  if (isMetricEditable(clubIndex, item)) {
+    row.append(name, createMetricKindSelect(clubIndex, metricIndex, item), counter, createMetricDeleteButton(clubIndex, metricIndex));
+    return row;
+  }
+
+  row.append(name, counter);
+  return row;
+}
+
+function createMetricNameControl(clubIndex, metricIndex, item) {
+  if (!isMetricEditable(clubIndex, item)) {
+    const name = document.createElement("div");
+    name.className = "metric-name";
+    name.textContent = item.label;
+    return name;
+  }
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "metric-name-input";
+  input.value = item.label;
+  input.placeholder = "項目名";
+  input.setAttribute("aria-label", "項目名");
+  input.addEventListener("input", (event) => {
+    state.clubs[clubIndex].metrics[metricIndex].label = event.target.value.trim() || "未設定項目";
+  });
+  return input;
+}
+
+function createMetricKindSelect(clubIndex, metricIndex, item) {
+  const select = document.createElement("select");
+  select.className = "metric-kind-select";
+  select.setAttribute("aria-label", "種類");
+  METRIC_KIND_OPTIONS.forEach((option) => {
+    const node = document.createElement("option");
+    node.value = option.value;
+    node.textContent = option.label;
+    node.selected = option.value === item.kind;
+    select.append(node);
+  });
+  select.addEventListener("change", (event) => {
+    state.clubs[clubIndex].metrics[metricIndex].kind = event.target.value;
+  });
+  return select;
+}
+
+function createMetricDeleteButton(clubIndex, metricIndex) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "remove-metric";
+  button.textContent = "×";
+  button.setAttribute("aria-label", "項目を削除");
+  button.addEventListener("click", () => {
+    const metricItem = state.clubs[clubIndex].metrics[metricIndex];
+    delete state.clubs[clubIndex].values[metricItem.key];
+    state.clubs[clubIndex].metrics.splice(metricIndex, 1);
+    renderCards();
+  });
+  return button;
+}
+
+function createCounter(clubIndex, item) {
   const counter = document.createElement("div");
   counter.className = "counter";
 
@@ -224,8 +320,32 @@ function createMetricRow(clubIndex, item) {
   });
 
   counter.append(minus, input, plus);
-  row.append(name, counter);
-  return row;
+  return counter;
+}
+
+function isMetricEditable(clubIndex, item) {
+  return state.clubs[clubIndex].allowMetricEdit && !item.locked;
+}
+
+function addMetric(clubIndex) {
+  const newMetric = metric(`custom_${Date.now()}_${state.clubs[clubIndex].metrics.length}`, "成功数", "count", 0, {
+    locked: false,
+  });
+  state.clubs[clubIndex].metrics.push(newMetric);
+  state.clubs[clubIndex].values[newMetric.key] = newMetric.defaultValue;
+  renderCards();
+}
+
+function addCustomClub() {
+  state.clubs.push(prepareClubForInput(createCustomClub("追加クラブ")));
+  renderCards();
+}
+
+function createCustomClub(clubName) {
+  return club(`custom_${Date.now()}_${Math.random().toString(16).slice(2)}`, clubName, commonMetrics.quick, {
+    editableName: true,
+    allowMetricEdit: true,
+  });
 }
 
 function changeMetric(clubIndex, key, amount, input) {
@@ -258,24 +378,24 @@ function saveLog(event) {
 
   const log = {
     id: createId(),
-    schemaVersion: 1,
+    schemaVersion: 2,
     templateName: state.activeTemplate,
     date: dateInput.value,
     location: locationInput.value.trim(),
     condition: conditionInput.value,
     overallMemo: overallMemoInput.value.trim(),
     createdAt: new Date().toISOString(),
-    clubs: state.clubs.map((club) => ({
-      clubId: club.clubId,
-      clubName: club.clubName,
-      memo: club.memo.trim(),
-      metrics: club.metrics.map((item) => ({
+    clubs: state.clubs.map((clubItem) => ({
+      clubId: clubItem.clubId,
+      clubName: clubItem.clubName,
+      memo: clubItem.memo.trim(),
+      metrics: clubItem.metrics.map((item) => ({
         key: item.key,
         label: item.label,
         kind: item.kind,
-        value: normalizeMetricValue(club.values[item.key]),
+        value: normalizeMetricValue(clubItem.values[item.key]),
       })),
-      successRate: calculateSuccessRate(club),
+      successRate: calculateSuccessRate(clubItem),
     })),
   };
 
@@ -301,19 +421,23 @@ function createId() {
   return `log-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function calculateSuccessRate(club) {
-  const balls = cleanNumber(club.values.balls);
-  const explicitRate = club.metrics.find((item) => item.kind === "percent");
-  if (explicitRate) {
-    return clamp(cleanNumber(club.values[explicitRate.key]), 0, 100);
+function calculateSuccessRate(clubItem) {
+  const balls = cleanNumber(clubItem.values.balls);
+  const explicitRate = clubItem.metrics.find((item) => item.kind === "percent");
+  if (explicitRate && clubItem.values[explicitRate.key] !== "") {
+    return clamp(cleanNumber(clubItem.values[explicitRate.key]), 0, 100);
   }
 
-  const successTotal = club.metrics
-    .filter((item) => item.key.startsWith("success"))
-    .reduce((sum, item) => sum + cleanNumber(club.values[item.key]), 0);
+  const successTotal = clubItem.metrics.filter(isSuccessMetric).reduce((sum, item) => {
+    return sum + cleanNumber(clubItem.values[item.key]);
+  }, 0);
 
   if (!balls || !successTotal) return 0;
   return Math.min(100, Math.round((successTotal / balls) * 100));
+}
+
+function isSuccessMetric(item) {
+  return item.key.startsWith("success") || item.label.includes("成功");
 }
 
 function clamp(value, min, max) {
@@ -321,8 +445,8 @@ function clamp(value, min, max) {
 }
 
 function showSummary(log) {
-  const totalBalls = log.clubs.reduce((sum, club) => {
-    const balls = club.metrics.find((item) => item.key === "balls");
+  const totalBalls = log.clubs.reduce((sum, clubItem) => {
+    const balls = clubItem.metrics.find((item) => item.key === "balls");
     return sum + (balls ? cleanNumber(balls.value) : 0);
   }, 0);
 
@@ -333,11 +457,11 @@ function showSummary(log) {
       <button class="text-button copy-summary" type="button">コピー</button>
     </div>
     <div class="summary-grid">
-      <div class="summary-item"><span>${log.date} / ${log.templateName}</span><strong>${totalBalls}球</strong></div>
+      <div class="summary-item"><span>${log.date} / ${escapeHtml(log.templateName)}</span><strong>${totalBalls}球</strong></div>
       ${log.clubs
         .map(
-          (club) =>
-            `<div class="summary-item"><span>${escapeHtml(club.clubName)}</span><span class="rate">${club.successRate}%</span></div>`,
+          (clubItem) =>
+            `<div class="summary-item"><span>${escapeHtml(clubItem.clubName)}</span><span class="rate">${clubItem.successRate}%</span></div>`,
         )
         .join("")}
     </div>
@@ -365,14 +489,14 @@ function buildSummaryText(log) {
     "【クラブ別】",
   ];
 
-  log.clubs.forEach((club) => {
-    lines.push(`■ ${club.clubName}`);
-    club.metrics.forEach((item) => {
+  log.clubs.forEach((clubItem) => {
+    lines.push(`■ ${clubItem.clubName}`);
+    clubItem.metrics.forEach((item) => {
       const value = item.value === "" ? "未入力" : item.value;
       lines.push(`- ${item.label}: ${value}`);
     });
-    lines.push(`- 成功率: ${club.successRate}%`);
-    if (club.memo) lines.push(`- メモ: ${club.memo}`);
+    lines.push(`- 成功率: ${clubItem.successRate}%`);
+    if (clubItem.memo) lines.push(`- メモ: ${clubItem.memo}`);
   });
 
   if (log.overallMemo) {
@@ -410,9 +534,9 @@ function renderTrends() {
 
   const byClub = new Map();
   recent.forEach((log) => {
-    log.clubs.forEach((club) => {
-      if (!byClub.has(club.clubName)) byClub.set(club.clubName, []);
-      byClub.get(club.clubName).push({ date: log.date, rate: club.successRate });
+    log.clubs.forEach((clubItem) => {
+      if (!byClub.has(clubItem.clubName)) byClub.set(clubItem.clubName, []);
+      byClub.get(clubItem.clubName).push({ date: log.date, rate: clubItem.successRate });
     });
   });
 
@@ -452,18 +576,18 @@ function exportCsv() {
   ];
 
   const rows = logs.flatMap((log) =>
-    log.clubs.flatMap((club) =>
-      club.metrics.map((item) => [
+    log.clubs.flatMap((clubItem) =>
+      clubItem.metrics.map((item) => [
         log.id,
         log.date,
         log.templateName,
         log.location,
         log.condition,
         log.overallMemo,
-        club.clubId,
-        club.clubName,
-        club.memo,
-        club.successRate,
+        clubItem.clubId,
+        clubItem.clubName,
+        clubItem.memo,
+        clubItem.successRate,
         item.key,
         item.label,
         item.kind,
