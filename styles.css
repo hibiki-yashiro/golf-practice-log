@@ -207,6 +207,17 @@ textarea {
   font-size: 0.78rem;
 }
 
+.club-name-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.club-name-field input {
+  min-height: 42px;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
 .metric-list {
   display: grid;
   gap: 10px;
@@ -218,6 +229,18 @@ textarea {
   grid-template-columns: minmax(76px, 1fr) 128px;
   align-items: center;
   gap: 10px;
+}
+
+.metric-row.editable-metric {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.metric-row.editable-metric {
+  grid-template-columns: minmax(82px, 1fr) 78px 112px 38px;
+  gap: 6px;
 }
 
 .metric-name {
@@ -247,6 +270,52 @@ textarea {
   padding: 6px 4px;
   text-align: center;
   font-weight: 800;
+}
+
+.metric-name-input,
+.metric-kind-select {
+  min-height: 42px;
+  padding: 6px 8px;
+  font-size: 0.86rem;
+}
+
+.metric-row.editable-metric .counter {
+  grid-template-columns: 30px minmax(38px, 1fr) 30px;
+  gap: 3px;
+}
+
+.metric-row.editable-metric .counter button,
+.metric-row.editable-metric .counter input {
+  min-height: 42px;
+}
+
+.metric-row.editable-metric .counter button {
+  font-size: 1rem;
+}
+
+.remove-metric {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: #f5e9eb;
+  color: var(--rose);
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.add-metric {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 2px;
+}
+
+.add-club-button {
+  min-height: 54px;
+  border: 1px dashed var(--green);
+  border-radius: 8px;
+  background: #eef6f1;
+  color: var(--green-dark);
+  font-weight: 900;
 }
 
 .memo-field {
@@ -393,5 +462,10 @@ textarea {
 
   .metric-row {
     grid-template-columns: minmax(120px, 1fr) 148px;
+  }
+
+  .metric-row.editable-metric {
+    grid-template-columns: minmax(160px, 1fr) 120px 148px 44px;
+    gap: 8px;
   }
 }
