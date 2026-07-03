@@ -1,0 +1,7 @@
+.agents/
+.codex/
+.gh-codex/
+work/
+
+.DS_Store
+Thumbs.db
