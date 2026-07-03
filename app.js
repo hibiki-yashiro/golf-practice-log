@@ -1,4 +1,4 @@
-const STORAGE_KEY = "golf-practice-logs-v2-prototype";
+﻿const STORAGE_KEY = "golf-practice-logs-v1";
 const DEFAULT_LOCATION = "zenゴルフレンジ";
 
 const METRIC_KIND_OPTIONS = [
@@ -635,3 +635,4 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
