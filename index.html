@@ -65,6 +65,36 @@
 
         <section class="summary hidden" id="todaySummary" aria-live="polite"></section>
 
+        <section class="panel sync-panel" aria-labelledby="syncTitle">
+          <div class="section-head">
+            <h2 id="syncTitle">クラウド保存</h2>
+            <span class="sync-badge is-local" id="syncStatus">端末保存のみ</span>
+          </div>
+          <div class="sync-meta">
+            <span id="pendingCount">未同期 0件</span>
+            <span id="lastSyncAt">最終同期 未実施</span>
+          </div>
+          <div class="sync-actions">
+            <button class="text-button" id="syncNow" type="button">今すぐ同期</button>
+            <button class="text-button" id="backupCloud" type="button">既存データをクラウドへバックアップ</button>
+          </div>
+          <p class="sync-message" id="syncMessage" aria-live="polite"></p>
+          <details class="cloud-settings">
+            <summary>クラウド設定</summary>
+            <div class="cloud-settings-fields">
+              <label>
+                Apps Script URL
+                <input id="cloudEndpoint" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" />
+              </label>
+              <label>
+                共有トークン
+                <input id="cloudToken" type="password" autocomplete="off" placeholder="Apps Scriptと同じ値" />
+              </label>
+              <button class="text-button" id="saveCloudConfig" type="button">設定を保存</button>
+            </div>
+          </details>
+        </section>
+
         <section class="panel" aria-labelledby="trendTitle">
           <div class="section-head">
             <h2 id="trendTitle">直近5回の成功率</h2>
@@ -89,6 +119,7 @@
       </article>
     </template>
 
+    <script src="./cloud-sync.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>
