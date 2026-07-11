@@ -363,6 +363,92 @@ textarea {
   font-size: 0.78rem;
 }
 
+.text-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.sync-panel h2 {
+  margin-bottom: 0;
+}
+
+.sync-badge {
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.sync-badge.is-local {
+  background: #edf0ed;
+  color: var(--muted);
+}
+
+.sync-badge.is-synced {
+  background: #e4f3ea;
+  color: var(--green-dark);
+}
+
+.sync-badge.is-pending,
+.sync-badge.is-syncing {
+  background: #fff1dc;
+  color: #8b5515;
+}
+
+.sync-badge.is-error {
+  background: #f8e7ea;
+  color: var(--rose);
+}
+
+.sync-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.sync-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sync-actions .text-button,
+.cloud-settings .text-button {
+  min-height: 42px;
+}
+
+.sync-message {
+  min-height: 18px;
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.cloud-settings {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.cloud-settings summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.cloud-settings-fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .summary {
   border-color: #cbdccf;
 }
@@ -477,6 +563,15 @@ textarea {
 
   .basic-grid {
     grid-template-columns: 150px 1fr 150px;
+  }
+
+  .sync-actions {
+    grid-template-columns: 140px minmax(240px, 1fr);
+  }
+
+  .cloud-settings-fields {
+    grid-template-columns: minmax(0, 1.5fr) minmax(180px, 1fr) 110px;
+    align-items: end;
   }
 
   .metric-row {
