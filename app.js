@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = "golf-practice-logs-v1";
+const STORAGE_KEY = "golf-practice-logs-v1";
 const DEFAULT_LOCATION = "zenゴルフレンジ";
 
 const METRIC_KIND_OPTIONS = [
@@ -56,9 +56,10 @@ const clubPresets = {
       metric("balls", "球数"),
       metric("success_150y", "150y成功数"),
       metric("success_160y", "160y成功数"),
+      metric("max_distance", "最大飛距離", "distance"),
       metric("miss", "ミス数"),
     ]),
-  pw90y: () => club("pw90y", "PW90y", commonMetrics.quick),
+  pw90y: () => club("pw90y", "PW90y", commonMetrics.successRateOnly),
   wood5: () =>
     club("wood5", "5W", [
       metric("balls", "球数"),
@@ -536,7 +537,7 @@ function renderTrends() {
   recent.forEach((log) => {
     log.clubs.forEach((clubItem) => {
       if (!byClub.has(clubItem.clubName)) byClub.set(clubItem.clubName, []);
-      byClub.get(clubItem.clubName).push({ date: log.date, rate: clubItem.successRate });
+      byClub.get(clubItem.clubName).push({ date: log.date, rate: clubItem.successRate, memo: clubItem.memo });
     });
   });
 
@@ -545,7 +546,9 @@ function renderTrends() {
       const rows = entries
         .map(
           (entry) =>
-            `<div class="trend-item"><span class="trend-date">${escapeHtml(entry.date)}</span><span class="rate">${entry.rate}%</span></div>`,
+            `<div class="trend-item"><span class="trend-date">${escapeHtml(entry.date)}</span><span class="rate">${entry.rate}%</span><p class="trend-memo">${
+              entry.memo ? escapeHtml(entry.memo) : ""
+            }</p></div>`,
         )
         .join("");
       return `<article class="trend-card"><h3>${escapeHtml(clubName)}</h3>${rows}</article>`;
