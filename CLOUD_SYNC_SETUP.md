@@ -1,10 +1,10 @@
 # Googleスプレッドシート同期の設定
 
-この手順では、Googleアカウント `hibiki.yashiro@gmail.com` に同期用スプレッドシートとApps Scriptを作成します。設定前や通信失敗時も、練習ログは従来どおり端末のlocalStorageへ保存されます。
+この手順では、同期用GoogleアカウントにスプレッドシートとApps Scriptを作成します。設定前や通信失敗時も、練習ログは従来どおり端末のlocalStorageへ保存されます。
 
 ## 1. スプレッドシートを作る
 
-1. `hibiki.yashiro@gmail.com` でGoogleへログインします。
+1. 同期用GoogleアカウントでGoogleへログインします。
 2. Googleスプレッドシートで空のファイルを作り、名前を `ゴルフ練習ログ` にします。
 3. URLの `/d/` と `/edit` の間にある文字列を控えます。これが `SPREADSHEET_ID` です。
 
@@ -30,7 +30,7 @@
 
 1. Apps Script上部の関数選択で `setupSheets` を選びます。
 2. `実行` を押します。
-3. 初回だけGoogleの権限確認が表示されます。`hibiki.yashiro@gmail.com` を選び、スプレッドシートへのアクセスを許可します。
+3. 初回だけGoogleの権限確認が表示されます。同期用Googleアカウントを選び、スプレッドシートへのアクセスを許可します。
 4. 元のスプレッドシートに `sessions` と `club_results` の2シートが作成されたことを確認します。
 
 `sessions` は練習1回につき1行、`club_results` はクラブ1件につき1行です。可変入力項目を失わないよう、完全な内容を `payload_json` と `metrics_json` にも保存します。
