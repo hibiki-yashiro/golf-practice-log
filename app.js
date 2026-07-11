@@ -98,6 +98,15 @@ const todaySummary = document.querySelector("#todaySummary");
 const trendList = document.querySelector("#trendList");
 const exportCsvButton = document.querySelector("#exportCsv");
 const clearDataButton = document.querySelector("#clearData");
+const syncStatus = document.querySelector("#syncStatus");
+const pendingCount = document.querySelector("#pendingCount");
+const lastSyncAt = document.querySelector("#lastSyncAt");
+const syncMessage = document.querySelector("#syncMessage");
+const syncNowButton = document.querySelector("#syncNow");
+const backupCloudButton = document.querySelector("#backupCloud");
+const cloudEndpointInput = document.querySelector("#cloudEndpoint");
+const cloudTokenInput = document.querySelector("#cloudToken");
+const saveCloudConfigButton = document.querySelector("#saveCloudConfig");
 
 init();
 
@@ -110,6 +119,7 @@ function init() {
   form.addEventListener("submit", saveLog);
   exportCsvButton.addEventListener("click", exportCsv);
   clearDataButton.addEventListener("click", clearAllLogs);
+  initializeCloudSync();
 }
 
 function renderTemplateButtons() {
@@ -377,15 +387,17 @@ function saveLog(event) {
   event.preventDefault();
   if (state.clubs.length === 0) return;
 
-  const log = {
+  const createdAt = new Date().toISOString();
+  const log = CloudSync.prepareLog({
     id: createId(),
-    schemaVersion: 2,
+    schemaVersion: 3,
     templateName: state.activeTemplate,
     date: dateInput.value,
     location: locationInput.value.trim(),
     condition: conditionInput.value,
     overallMemo: overallMemoInput.value.trim(),
-    createdAt: new Date().toISOString(),
+    createdAt,
+    updatedAt: createdAt,
     clubs: state.clubs.map((clubItem) => ({
       clubId: clubItem.clubId,
       clubName: clubItem.clubName,
@@ -398,16 +410,17 @@ function saveLog(event) {
       })),
       successRate: calculateSuccessRate(clubItem),
     })),
-  };
+  });
 
   const logs = loadLogs();
   logs.unshift(log);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+  CloudSync.saveLogs(logs);
 
   showSummary(log);
   renderTrends();
   overallMemoInput.value = "";
   window.scrollTo({ top: 0, behavior: "smooth" });
+  void CloudSync.synchronize({ pullFirst: false, reason: "save" });
 }
 
 function formatLocalDate(date) {
@@ -615,19 +628,86 @@ function csvCell(value) {
 }
 
 function clearAllLogs() {
-  const ok = confirm("保存済みの練習ログをすべて削除しますか？");
+  const ok = confirm("端末内の練習ログをすべて削除しますか？ クラウド上の記録は削除されず、次回同期時に再取得されます。");
   if (!ok) return;
-  localStorage.removeItem(STORAGE_KEY);
+  CloudSync.saveLogs([]);
   todaySummary.classList.add("hidden");
   renderTrends();
 }
 
 function loadLogs() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
-  } catch {
-    return [];
+  return CloudSync.loadLogs();
+}
+
+function initializeCloudSync() {
+  const config = CloudSync.getConfig();
+  cloudEndpointInput.value = config.endpointUrl;
+  cloudTokenInput.value = config.token;
+
+  saveCloudConfigButton.addEventListener("click", () => {
+    CloudSync.saveConfig({ endpointUrl: cloudEndpointInput.value, token: cloudTokenInput.value });
+  });
+
+  syncNowButton.addEventListener("click", () => {
+    void CloudSync.synchronize({ pullFirst: true, reason: "manual" }).then(renderTrends);
+  });
+
+  backupCloudButton.addEventListener("click", () => {
+    const status = CloudSync.getState();
+    const message = [
+      `対象件数: ${status.total}件`,
+      `同期済み: ${status.synced}件`,
+      `未同期: ${status.unsynced}件`,
+      "",
+      "既存データをクラウドへバックアップしますか？",
+    ].join("\n");
+    if (!confirm(message)) return;
+    void CloudSync.backupAll().then(renderTrends);
+  });
+
+  CloudSync.initialize({
+    onStatusChange: updateSyncPanel,
+    onLogsChanged: renderTrends,
+  });
+}
+
+function updateSyncPanel(status, message = "") {
+  syncStatus.className = "sync-badge";
+  if (status.syncing) {
+    syncStatus.textContent = "同期中";
+    syncStatus.classList.add("is-syncing");
+  } else if (!status.configured) {
+    syncStatus.textContent = "端末保存のみ";
+    syncStatus.classList.add("is-local");
+  } else if (status.errors > 0) {
+    syncStatus.textContent = "同期エラー";
+    syncStatus.classList.add("is-error");
+  } else if (status.pending > 0) {
+    syncStatus.textContent = "クラウド未同期";
+    syncStatus.classList.add("is-pending");
+  } else {
+    syncStatus.textContent = "クラウド同期済み";
+    syncStatus.classList.add("is-synced");
   }
+
+  pendingCount.textContent = `未同期 ${status.unsynced}件`;
+  lastSyncAt.textContent = status.lastSyncAt ? `最終同期 ${formatSyncDate(status.lastSyncAt)}` : "最終同期 未実施";
+  syncMessage.textContent = message;
+  syncNowButton.disabled = status.syncing;
+  backupCloudButton.disabled = status.syncing;
+  saveCloudConfigButton.disabled = status.syncing;
+  syncNowButton.textContent = status.syncing ? "同期中" : "今すぐ同期";
+}
+
+function formatSyncDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "日時不明";
+  return new Intl.DateTimeFormat("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function escapeHtml(value) {
